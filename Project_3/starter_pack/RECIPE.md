@@ -198,8 +198,9 @@ Each part of the recipe follows an established idea; we adapted it to this task 
   p < 0.001). Lesson: the E5 prompt is finely balanced; every extra instruction in steps 2–3 cost 0.05–0.09 on
   criterion 1. Known limit: criteria about tone or format (still well above the starting judge).
 
-**Final version: E5.** Criterion 1, four independent runs of the same code: 0.915 / 0.897 / 0.910 / 0.878
-(mean 0.900; run-to-run spread larger than the ±0.01 we first estimated, about ±0.02); consistency 98.3%.
+**Final version: E5.** Criterion 1, five independent runs of the same code: 0.915 / 0.897 / 0.910 / 0.878 / 0.854
+(mean 0.891, about 0.9; run-to-run spread larger than the ±0.01 we first estimated, about ±0.03); consistency 98.3%.
+Criterion 2, two runs: 0.863 / 0.851 (mean 0.857).
 Synthetic set 1: 0.931 (starting judge 0.810); synthetic set 2 (100 further cases): 0.908 (starting judge 0.781).
 Practice criteria A / B / C: 0.931 / 0.806 / 0.720 (starting judge 0.932 / 0.556 / 0.424).
 - **Tuning further on the remaining wrong originals:** the last ones (e.g. "we can often extend" vs. the policy's
