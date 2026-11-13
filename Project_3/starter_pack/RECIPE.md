@@ -17,8 +17,9 @@ not only the counts: the cause is usually one repeated pattern.
   harmful edits, because both sides of the pair fail.
 
 ## Step 2. Split: rules vs. LLM
-Plain code extracts **facts**, never verdicts: every number in the reply that appears nowhere in the policy is listed
-in the prompt as a note for the model to check.
+Plain code extracts **facts** and never decides alone: every number in the reply that appears nowhere in the policy
+is listed in the prompt as a note for the model to check. (Once the rule has proven itself on the examples, it does
+lower the bar from two FAIL votes to one; see below.)
 
 - On dev this note fires on all 35 wrong-number edits and on no harmless edit.
 - It is not an automatic fail on purpose: a number that differs from the policy can be harmless for another
@@ -43,8 +44,9 @@ One reasoning call per reply, structured as steps the model writes out, ending i
 4. **Criterion:** decide which differences break the criterion, applying its text literally, including what it says
    does not count, and reading the reply as the customer would.
 
-**Examples are picked by code from the dev pairs:** one pair per edit type, the good reply next to its edited copy
-with both labels and what changed. They come from different source replies where possible, preferring short,
+**Examples are picked by code from the dev pairs:** up to 8 pairs, one per edit type with label-changing types
+first (then the others alphabetically; with criterion 1's 9 edit types, "translation" is not shown as a pair), the
+good reply next to its edited copy with both labels and what changed, plus 3 single good replies. They come from different source replies where possible, preferring short,
 English ones. The same code picks examples for the surprise criterion.
 
 Settings are fixed in code (temperature 0, 1,500 output tokens) so a rerun behaves the same; unparsed answers are

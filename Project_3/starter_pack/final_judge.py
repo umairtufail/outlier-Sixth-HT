@@ -3,12 +3,14 @@
 Recipe (same code for every criterion; only the criterion text, policy and dev examples change):
   1. Diagnose  - done offline with diagnose.py; drove the design below.
   2. Split     - plain code extracts *facts* (numbers in the reply that the policy never mentions). They are handed
-                 to the LLM as evidence, never as an automatic verdict, so they cannot over-fire on a new criterion.
+                 to the LLM as evidence, never as an automatic verdict. The rule first tests itself on the labelled
+                 examples; only when trusted and it fires does it lower the bar from two FAIL votes to one.
   3. Improve   - one reasoning call per vote: the model quotes the relevant policy rules, lists every concrete
                  statement in the reply, writes down each difference from the policy (numbers, conditions, certainty,
                  scope, details), and only then applies the criterion to those differences.
-                 Contrastive few-shot examples are picked automatically from the labelled dev pairs: for each edit
-                 type, the good reply and its edited copy side by side, with the label and what changed.
+                 Contrastive few-shot examples are picked automatically from the labelled dev pairs: up to 8 pairs,
+                 one per edit type with label-changing types first (the good reply and its edited copy side by
+                 side, with the label and what changed), plus 3 single good replies.
   4. Verify    - cv_eval.py: grouped cross-validation by source_id, so examples never come from the scored replies.
 
 Rules of the game respected: one reply at a time, no state between calls (EXAMPLES is filled once in prepare() and
@@ -32,15 +34,16 @@ import urllib.error
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import baseline_judge as bj  # noqa: E402  (HTTP client, retries, cache file location)
 
-# ---------------------------------------------------------------- settings (fixed in code, not read from env, so a
-# rerun by the organisers behaves exactly like ours)
-VOTES = int(os.environ.get("FINAL_JUDGE_VOTES", "2"))  # 1..3 prompt variants (example order rotated). A reply
-# fails only if MORE than half the votes fail, so with 2 votes both calls must say fail (measured: +0.03 combined)
-assert 1 <= VOTES <= 3, "budget is at most 3 LLM calls per reply"
+# ---------------------------------------------------------------- settings that shape verdicts: fixed in code, not read
+# from the environment, so a rerun by the organisers behaves exactly like ours. (Only request pacing,
+# FINAL_JUDGE_MAX_RPM, and the proxy cache bypass, FINAL_JUDGE_NO_PROXY_CACHE, come from the environment; neither
+# changes what is sent to the model.)
+VOTES = 2  # prompt variants (example order rotated). A reply fails only if MORE than half the votes fail, so with
+# 2 votes both calls must say fail (measured: +0.03 combined). Budget: at most 3 LLM calls per reply.
 MAX_TOKENS = 1500
 TEMPERATURE = 0
-MAX_EXAMPLE_PAIRS = 8  # contrastive pairs shown to the model
-MAX_EXTRA_REPLIES = int(os.environ.get("FINAL_JUDGE_EXTRA", "3"))  # extra single labelled replies
+MAX_EXAMPLE_PAIRS = 8  # contrastive pairs shown to the model (one per edit type; label-changing types first)
+MAX_EXTRA_REPLIES = 3  # extra single labelled replies
 
 EXAMPLES: list[dict] = []  # filled by prepare(); read-only afterwards
 EXTRA: list[dict] = []  # filled by prepare(); read-only afterwards
@@ -53,8 +56,10 @@ def prepare(criterion: str, policy: str, dev_pairs: list[dict]) -> None:
     """Pick a small, diverse set of contrastive examples from the labelled dev pairs.
 
     Generic rules, no criterion knowledge:
-      - one pair per edit type (the dev set's own taxonomy), harmful types first, so every kind of label-changing
-        edit is shown once next to its unchanged original;
+      - one pair per edit type (the dev set's own taxonomy), label-changing types first, then the others in
+        alphabetical order, at most MAX_EXAMPLE_PAIRS: every label-changing kind of edit is shown once next to its
+        unchanged original; with more than 8 edit types the last harmless ones are not shown as pairs (for the
+        criterion-1 dev set that is "translation");
       - prefer English and short replies (cheaper, easier to read), but never two pairs from the same source reply
         when another source is available, so the examples cover several topics;
       - deterministic: same dev file -> same examples -> same prompts.
@@ -191,7 +196,8 @@ def _validate_number_rule(policy: str, dev_pairs: list[dict]) -> bool:
 
 
 def rules(question: str, reply: str, lang: str, policy: str) -> list[str]:
-    """Facts plain code can establish. Returned as notes for the LLM; never a verdict on their own."""
+    """Facts plain code can establish. Returned as notes for the LLM; never a verdict on their own (the trusted
+    number rule only lowers the vote threshold in judge(), the model still has to vote FAIL)."""
     notes = []
     unknown = _unknown_numbers(reply, policy)
     if unknown:

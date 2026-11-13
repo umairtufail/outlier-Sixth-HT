@@ -16,12 +16,14 @@ only the criterion text, the policy and a few labelled examples as input.
 The recipe (`starter_pack/final_judge.py`, full write-up in `starter_pack/RECIPE.md`):
 1. **Diagnose** where the judge fails (per edit type and language, reading the model's own reasoning).
 2. **Code checks facts.** Numbers in the reply that appear nowhere in the policy are passed to the model as a fact
-   note. The rule **tests itself on the labelled examples** first and is trusted only if it never fires on a passing
-   example; when trusted and it fires, one fail vote is enough.
+   note. The rule **tests itself on the labelled examples** first and is trusted only if it fires on at least 3
+   failing examples and never on a passing one; when trusted and it fires, one fail vote is enough instead of two
+   (so code never decides alone, but a trusted rule does lower the bar).
 3. **The model reasons in fixed steps:** quote the policy rule → list the reply's statements → list every
    difference in meaning → **only the criterion decides**: for each difference the model must quote the part of the
-   criterion it breaks, or write "not covered". Few-shot examples are chosen by code from the labelled pairs (one
-   minimal pair per edit type plus three single good replies). Two calls with the examples in a different order;
+   criterion it breaks, or write "not covered". Few-shot examples are chosen by code from the labelled pairs (up to
+   8 minimal pairs, one per edit type with label-changing types first, so with criterion 1's 9 edit types
+   "translation" is not shown as a pair; plus three single good replies). Two calls with the examples in a different order;
    the reply fails only if both say FAIL (benefit of the doubt for hedged wording, never for quantities).
 4. **Verify honestly:** examples never come from the replies being scored (grouped by source reply); edit types
    never shown; a synthetic set with new topics and edit types; self-made practice criteria; repeated runs.
