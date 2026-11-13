@@ -66,7 +66,27 @@ being scored.
 | Version 3 + fail only if 2 of 2 calls fail | full dev (226) | 0.779 | 0.709 | 0.864 | 87% |
 | Version 4: + 3 extra good replies as examples | full dev (226) | 0.791 | 0.724 | 0.871 | 87% |
 | Version 5: + self-validated number rule | full dev (226) | 0.803 | 0.746 | 0.871 | 87% |
-| **Version 6: quantities never get the benefit of the doubt (current)** | full dev (226) | **0.871** | **0.840** | **0.904** | **94%** |
+| Version 6: quantities never get the benefit of the doubt | full dev (226) | 0.871 | 0.840 | 0.904 | 94% |
+| **Version 8 (E5): only the criterion decides (current)** | full dev (226) | **0.915** | **0.886** | **0.947** | — |
+
+**Version 8 (E5).** Step 3 only *lists* differences; step 4 lets only the criterion decide: for each difference
+the model must quote the part of the criterion it breaks, otherwise it writes "not covered" and ignores it, and
+the examples override any rule of thumb from step 3. Found with the practice criteria below; it also helped the
+original criterion (+0.07 over version 6's three-run mean of 0.84; per case 22 vs 6, McNemar p = 0.004).
+
+**Practice criteria (dress rehearsal for the surprise criterion).** We wrote two new criteria in the official style
+and relabelled the dev cases for them (`mock/`), giving the judge only 15–17 examples, as in the surprise task:
+A "states policy facts correctly" (certainty changes and dropped conditions now *pass*) and B "keeps the policy's
+conditions" (wrong numbers and details now *pass*).
+
+| | A: facts correct | B: conditions kept |
+|---|---|---|
+| Starting judge (baseline) | 0.932 | 0.556 |
+| Version 6 | 0.873 | 0.698 |
+| **Version 8 (E5)** | **0.931** | **0.806** |
+
+Version 6 still applied criterion 1's rules of thumb to new criteria (it failed 73% of dropped conditions that
+criterion A allows). Making the criterion the only judge fixed most of this.
 
 Version 2 tied the baseline: the remaining loss was failed *original* replies, concentrated in one source reply
 (the late-return answer "if you call us, we can often extend", where the policy says only "some branches" offer
@@ -81,6 +101,22 @@ this by phone, failed 29 of 29 times). Two changes fixed most of it:
   (+0.012), largest in German.
 
 Run time: about 8.5 minutes for 226 cases with 2 fresh calls per reply (5 parallel workers).
+
+**Noise and consistency (event endpoint, `claude-haiku-4.5`).** Version 6 run three times from scratch on all 226
+cases, with the proxy's response cache bypassed so every call reaches the model:
+
+| run | combined | catch | keep |
+|---|---|---|---|
+| 1 | 0.845 | 0.783 | 0.918 |
+| 2 | 0.832 | 0.766 | 0.911 |
+| 3 | 0.838 | 0.776 | 0.911 |
+
+- Consistency (`score.py --repeat`, 235 replies): same verdict **96.6%** (run 1 vs 2) and **98.3%** (run 2 vs 3);
+  kappa between runs 0.93 and 0.97.
+- Run-to-run noise in the combined score is about ±0.01, so we only accept a change that beats that clearly.
+- Our best single-run estimate is therefore **about 0.84**, not the 0.871 of one earlier run.
+- Uncertainty: dev has only 9 source replies, so 95% intervals grouped by source reply are wide (`stats.py`);
+  per-case paired tests (McNemar) still show version 6 beats the baseline (57 vs 21 cases, p < 0.001).
 
 - Check: the gain holds on edit types you did not tune on. `loo_eval.py` judges each edit type with that type
   removed from the examples (and examples still from other source replies only), simulating unseen edit types:
@@ -102,6 +138,26 @@ Run time: about 8.5 minutes for 226 cases with 2 fresh calls per reply (5 parall
 |---|---|---|---|
 | Baseline | | | |
 | Ours, recipe unchanged | | | |
+
+## Where each part comes from (references)
+Each part of the recipe follows an established idea; we adapted it to this task and measured it here.
+
+| Part of the recipe | Idea it follows | Reference |
+|---|---|---|
+| Reason step by step before the verdict | chain-of-thought prompting | Wei et al., *Chain-of-Thought Prompting Elicits Reasoning in Large Language Models*, NeurIPS 2022 |
+| Fixed evaluation steps, then a verdict | LLM evaluators with explicit evaluation steps | Liu et al., *G-Eval: NLG Evaluation using GPT-4 with Better Human Alignment*, EMNLP 2023 |
+| Split the reply into single statements and check each against the source | atomic-fact decomposition | Min et al., *FActScore: Fine-grained Atomic Evaluation of Factual Precision in Long Form Text Generation*, EMNLP 2023 |
+| LLM as a judge; known weaknesses (position, verbosity, leniency) | LLM-as-a-judge | Zheng et al., *Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena*, NeurIPS 2023 |
+| Labelled examples in the prompt | in-context (few-shot) learning | Brown et al., *Language Models are Few-Shot Learners*, NeurIPS 2020 |
+| Choosing examples by what they teach | example selection matters | Liu et al., *What Makes Good In-Context Examples for GPT-3?*, DeeLIO 2022 |
+| Two calls with the examples in a different order | results depend on example order; aggregating over orders reduces this | Lu et al., *Fantastically Ordered Prompts and Where to Find Them*, ACL 2022; Zhao et al., *Calibrate Before Use*, ICML 2021 |
+| Several reasoning paths, then aggregate | self-consistency | Wang et al., *Self-Consistency Improves Chain of Thought Reasoning in Language Models*, ICLR 2023 |
+| Examples as minimal pairs (good reply vs. one-change copy) | contrast sets, counterfactual data | Gardner et al., *Evaluating Models' Local Decision Boundaries via Contrast Sets*, Findings of EMNLP 2020; Kaushik et al., *Learning the Difference that Makes a Difference with Counterfactually-Augmented Data*, ICLR 2020 |
+| Testing harmless vs. harmful edits, new edit types, synthetic stress set | behavioural testing (invariance and directional tests) | Ribeiro et al., *Beyond Accuracy: Behavioral Testing of NLP Models with CheckList*, ACL 2020 |
+| Judges ignore harmless edits but miss meaning changes (the problem itself) | construct sensitivity of judges | *A Judge Should Know What Changed*, arXiv:2608.24419 (project background reading) |
+| Agreement and consistency measured with kappa | chance-corrected agreement | Cohen, *A Coefficient of Agreement for Nominal Scales*, Educational and Psychological Measurement, 1960 |
+| Paired comparison of two versions on the same cases | McNemar's test | McNemar, *Note on the Sampling Error of the Difference Between Correlated Proportions or Percentages*, Psychometrika, 1947 |
+| Confidence intervals resampling whole source replies | (cluster) bootstrap | Efron & Tibshirani, *An Introduction to the Bootstrap*, 1993 |
 
 ## What did not work
 - **"Write down every difference, however small"** (version 1): made the judge nitpick good replies for not

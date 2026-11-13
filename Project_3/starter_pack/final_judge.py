@@ -234,11 +234,15 @@ Work through these steps in English, briefly:
      conveys this, so a hedged statement is NOT missing such a caveat. Only a firm wording ("always", "will",
      "guaranteed", "all", no hedge at all on an uncertain outcome) loses it.
    Leaving out policy details the reply does not talk about is not a difference.
-4. CRITERION: for each difference, decide whether it breaks the criterion, applying the criterion text literally,
-   including what it says does NOT count. Differences that the criterion does not care about are fine.
-   Judge as the customer would read the reply: what would they reasonably believe the company has committed to?
-   Count a difference only when it is clear-cut: a typical customer reading the WHOLE reply would plainly come away
-   with a belief the criterion rules out. If a statement is hedged and can reasonably be read as consistent with
+   This step only LISTS differences. A difference is not yet a problem: step 4 decides.
+4. CRITERION: only the criterion decides the verdict. Re-read the criterion, then for each difference from step 3:
+   - quote, word for word, the part of the criterion that this kind of difference breaks;
+   - if no part of the criterion covers it, or the criterion says it does not matter, write "not covered" and
+     ignore that difference completely, however important it would be under another rule.
+   The examples above show how this criterion is applied: follow them over any rule of thumb in step 3.
+   Read the reply as the customer would: what would they reasonably understand from the WHOLE reply?
+   Count a covered difference only when it is clear-cut: a typical customer would plainly come away with something
+   the criterion rules out. If a statement is hedged and can reasonably be read as consistent with
    the policy, give the reply the benefit of the doubt. Most replies you see were written carefully; do not hunt
    for technicalities. The benefit of the doubt never covers a quantity: a number, amount, price, fee, deadline,
    duration or limit that differs from the policy value is a clear-cut difference; use the criterion to decide
@@ -256,6 +260,26 @@ def build_prompt(question: str, reply: str, lang: str, criterion: str, policy: s
 
 
 # ---------------------------------------------------------------- LLM call (own settings, baseline transport)
+# Request pacing: the event proxy allows a fixed number of requests per minute and answers "429, retry after 60 s"
+# when it is exceeded, which stalls a whole run. Spacing request starts evenly stays just under the limit.
+# This only changes WHEN calls are sent, never what is sent or how a verdict is formed.
+MAX_RPM = float(os.environ.get("FINAL_JUDGE_MAX_RPM", "180"))
+_pace_lock = threading.Lock()
+_next_slot = 0.0
+
+
+def _pace() -> None:
+    global _next_slot
+    if MAX_RPM <= 0:
+        return
+    with _pace_lock:
+        now = time.monotonic()
+        wait = max(0.0, _next_slot - now)
+        _next_slot = max(now, _next_slot) + 60.0 / MAX_RPM
+    if wait:
+        time.sleep(wait)
+
+
 def _call(prompt: str) -> str:
     base, key, model, timeout, _ = bj._config()
     payload = {"model": model, "messages": [{"role": "user", "content": prompt}],
@@ -266,6 +290,7 @@ def _call(prompt: str) -> str:
         payload["cache"] = {"no-cache": True}
     headers = {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
     for attempt in range(bj.MAX_RETRIES + 1):
+        _pace()
         try:
             body = bj._post(f"{base}/chat/completions", payload, headers, timeout)
             return body["choices"][0]["message"]["content"] or ""
