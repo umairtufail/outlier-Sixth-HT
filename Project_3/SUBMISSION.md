@@ -36,7 +36,7 @@ The model is fixed by the challenge. We compared prompt/recipe versions, not mod
 | Model | Open-weight or closed | Where it runs | Main metric(s) | Cost and time per item | Chosen? |
 | --- | --- | --- | --- | --- | --- |
 | claude-haiku-4.5 (starting judge, 1 call) | closed | event LiteLLM proxy | combined 0.697 on dev | 1 call, ~1 s | baseline |
-| claude-haiku-4.5 (our recipe, 2 calls) | closed | event LiteLLM proxy | combined ~0.91 on dev | 2 calls (~4k tokens each), ~1 cent, a few seconds | **yes** (required model; best version) |
+| claude-haiku-4.5 (our recipe, 2 calls) | closed | event LiteLLM proxy | combined ~0.90 on dev | 2 calls (~4k tokens each), ~1 cent, a few seconds | **yes** (required model; best version) |
 
 Settings: temperature 0, 1,500 output tokens, 2 votes per reply (max 3 allowed), request pacing under the proxy's
 rate limit.
@@ -49,7 +49,7 @@ All numbers with the organisers' `score.py`; held out by source reply (examples 
 | | combined | catch | keep |
 |---|---|---|---|
 | Starting judge | 0.697 | 0.592 | 0.847 |
-| **Ours (3 runs)** | **0.915 / 0.897 / 0.910** | 0.886 / 0.857 / 0.876 | 0.947 / 0.941 / 0.948 |
+| **Ours (4 runs, same code)** | **0.915 / 0.897 / 0.910 / 0.878 (mean 0.900)** | 0.886 / 0.857 / 0.876 / 0.842 | 0.947 / 0.941 / 0.948 / 0.918 |
 
 - Dropped conditions caught: 7% → 80%. Certainty changes ("usually" → "always"): 50% → 100%.
 - **Consistency** (`score.py --repeat`): **98.3%** same verdict, kappa 0.97 (235 replies).
@@ -89,8 +89,8 @@ is held out by source reply (the judge only sees examples from other source repl
   is what keeps good replies from being failed.
 
 **What did not work** (details in `RECIPE.md`): asking for "every difference, however small" (judge too strict);
-three attempts at explicit "who benefits" reasoning for numbers (each lowered criterion 1, e.g. 0.91 → 0.86);
-turning the number rule into a note only (0.91 → 0.78).
+three attempts at explicit "who benefits" reasoning for numbers (each lowered criterion 1, e.g. ~0.90 → 0.86);
+turning the number rule into a note only (~0.90 → 0.78).
 
 **Limits:** the judge still misreads the direction of some number changes on new topics (wrong numbers on new
 topics caught ~63%); dev has only 9 source replies, so hidden-test scores will likely be somewhat lower.

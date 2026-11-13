@@ -42,7 +42,7 @@ def save(fig, name):
 # 1. Headline: both official criteria, starting judge vs ours --------------------------------------------------
 fig, ax = plt.subplots(figsize=(10, 5.2))
 groups = ["Criterion 1\nover-promising", "Criterion 2 (surprise)\npolicy stated correctly"]
-base, ours = [0.697, 0.652], [0.907, 0.863]
+base, ours = [0.697, 0.652], [0.900, 0.863]
 x = range(len(groups))
 w = 0.34
 for i, (b, o) in enumerate(zip(base, ours)):
@@ -121,7 +121,7 @@ save(fig, "3_generalisation.png")
 # 4. The way of working: every idea measured, kept or rejected -----------------------------------------------------
 kept = [("Start", 0.697), ("Step-by-step\nreasoning", 0.692), ("Benefit of\nthe doubt", 0.752), ("Ask twice,\nboth fail", 0.779),
         ("Extra good\nexamples", 0.791), ("Number\ncheck", 0.803), ("Numbers:\nno doubt", 0.840),
-        ("Criterion\ndecides", 0.907)]
+        ("Criterion\ndecides", 0.900)]
 rejected = [(6, 0.838, "who-benefits\nreasoning"), (7, 0.783, "number rule\nas note"), (7, 0.862, "who-benefits\nagain"),
             (7, 0.846, "tone-aware\nstep 2"), (7, 0.821, "tone exception")]
 fig, ax = plt.subplots(figsize=(12, 5.4))
