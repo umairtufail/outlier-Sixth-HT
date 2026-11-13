@@ -173,6 +173,4 @@ for i, (n, title, sub, icon) in enumerate(steps):
 ax.text(0.25, 0.8, "+ examples picked automatically from labelled data   "
         "+ code checks numbers (tests itself first)   + asked twice: blocked only if both say FAIL",
         fontsize=11.5, color=INK2)
-ax.text(0.25, 0.3, "Same code for every rule: only the criterion text and a few examples change.",
-        fontsize=12.5, color=OURS, fontweight="bold")
 save(fig, "0_recipe_flow.png")

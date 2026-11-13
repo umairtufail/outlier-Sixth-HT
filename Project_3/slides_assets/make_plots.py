@@ -58,7 +58,7 @@ ax.yaxis.grid(True, color=GRID, zorder=0)
 ax.set_ylabel("combined score (catch × keep balance)")
 clean(ax)
 ax.legend(handles=[plt.Rectangle((0, 0), 1, 1, color=BASE), plt.Rectangle((0, 0), 1, 1, color=OURS)],
-          labels=["SIXT starting judge", "Our recipe (same code for both)"], frameon=False, loc="upper center",
+          labels=["SIXT starting judge", "Our judge"], frameon=False, loc="upper center",
           ncol=2, bbox_to_anchor=(0.5, 1.12), fontsize=13)
 save(fig, "1_headline.png")
 
@@ -94,7 +94,7 @@ ax.xaxis.grid(True, color=GRID, zorder=0)
 clean(ax)
 ax.legend(handles=[plt.Line2D([], [], marker="o", ls="", color=BASE, ms=10),
                    plt.Line2D([], [], marker="o", ls="", color=OURS, ms=10)],
-          labels=["SIXT starting judge", "Our recipe"], frameon=False, loc="upper center", ncol=2,
+          labels=["SIXT starting judge", "Our judge"], frameon=False, loc="upper center", ncol=2,
           bbox_to_anchor=(0.45, 1.09), fontsize=12)
 save(fig, "2_per_edit_type.png")
 
@@ -114,7 +114,7 @@ ax.xaxis.grid(True, color=GRID, zorder=0)
 ax.set_xlabel("combined score")
 clean(ax)
 ax.legend(handles=[plt.Rectangle((0, 0), 1, 1, color=BASE), plt.Rectangle((0, 0), 1, 1, color=OURS)],
-          labels=["SIXT starting judge", "Our recipe (code unchanged)"], frameon=False, loc="upper center", ncol=2,
+          labels=["SIXT starting judge", "Our judge"], frameon=False, loc="upper center", ncol=2,
           bbox_to_anchor=(0.4, 1.09), fontsize=12)
 save(fig, "3_generalisation.png")
 
