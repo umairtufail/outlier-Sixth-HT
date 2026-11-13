@@ -105,6 +105,11 @@ is held out by source reply (the judge only sees examples from other source repl
   a hedge already conveys a general caveat passes it; the labels fail it). We did not tune for these: the same rule
   is what keeps good replies from being failed.
 
+**Test set (released 16:00), frozen 16:00 judge, `claude-haiku-4.5`:** both criteria run twice as instructed;
+files in `submission/` (`criterion1_run1/2.csv`, 291 cases; `criterion2_run1/2.csv`, 311 cases). No labels, so no
+score on our side. Consistency between the two runs (same verdict per reply): **97.3%** on criterion 1 (292 of 300
+replies) and **98.8%** on criterion 2 (316 of 320). All four runs took 22 minutes.
+
 **What did not work** (details in `RECIPE.md`): asking for "every difference, however small" (judge too strict);
 three attempts at explicit "who benefits" reasoning for numbers (each lowered criterion 1, e.g. ~0.90 → 0.86);
 turning the number rule into a note only (~0.90 → 0.78).
