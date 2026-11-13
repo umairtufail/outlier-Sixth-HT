@@ -9,7 +9,7 @@ set -a; . ../.env; set +a
 unset JUDGE_LLM_CACHE
 export FINAL_JUDGE_NO_PROXY_CACHE=1  # the event proxy caches identical requests; run 2 must really call the model
 export FINAL_JUDGE_MAX_RPM="${FINAL_JUDGE_MAX_RPM:-180}"  # stay under the proxy limit (200/min per key); use 90 if the team limit is 100
-W="${WORKERS:-20}"  # enough parallel requests to reach the pace; the pacing in final_judge.py prevents 429 stalls
+W="${WORKERS:-40}"  # enough parallel requests to reach the pace; the pacing in final_judge.py prevents 429 stalls
 [ "${JUDGE_LLM_MODEL}" = "claude-haiku-4.5" ] || { echo "JUDGE_LLM_MODEL must be claude-haiku-4.5"; exit 1; }
 PY=../.venv/bin/python
 mkdir -p ../submission

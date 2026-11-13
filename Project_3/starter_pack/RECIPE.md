@@ -168,5 +168,27 @@ Each part of the recipe follows an established idea; we adapted it to this task 
   sentence on direction ("a lower fee benefits the payer") raised that to 69%, but the full dev score fell from
   0.871 to 0.838, so we kept version 6. Unseen kinds of number edits remain a known weak spot. Part of the
   difference between versions may be run-to-run noise (see consistency).
+- **E6, explicit quantity reasoning + number rule as a note only** (rejected). The synthetic set showed misses on
+  number direction ("per rental" instead of "per day", "24 h before pick-up" instead of 48 h). E6 asked the model
+  to write policy value, reply value, basis and who gains, and stopped the number rule from lowering the vote
+  threshold. Criterion 1 fell from ~0.91 to 0.783 (wrong numbers caught 94% → 54%; per case 8 better vs 40 worse,
+  McNemar p < 0.001), and the synthetic tuning half did not improve (0.933 vs 0.951). The self-validated number rule
+  is doing real work; direction errors remain a known limit.
+- **E7, only the "who gains" sentence for quantities** (rejected; same idea as version 7, now on top of E5 with the
+  number rule unchanged). Synthetic tuning half unchanged (0.951 = 0.951; "per rental" edits 100% caught), but
+  criterion 1 fell to 0.862 (wrong numbers 94% → 71%; per case 9 better vs 23 worse, p = 0.02). Third failed attempt
+  at explicit direction reasoning (version 7, E6, E7): with Haiku it adds more wrong reasoning than it fixes.
+- **E8/E9, tone and greetings only when the criterion is about them** (rejected). A third practice criterion C
+  ("does the reply start with the answer?", openers fail) showed that our step 2 ("skip greetings … tone does not
+  matter") blinds the judge for such criteria: E5 0.720 vs starting judge 0.424. E8 (that sentence made
+  conditional) reached **0.958** on C but criterion 1 fell to 0.846; E9 (sentence kept plus an explicit exception)
+  0.839 on C, criterion 1 0.821. A control run of unchanged E5 right afterwards gave **0.910** (98.3% same verdicts
+  as its first run), so the endpoint was stable and both drops were real (E9 vs control: 7 better vs 29 worse,
+  p < 0.001). Lesson: the E5 prompt is finely balanced; every extra instruction in steps 2–3 cost 0.05–0.09 on
+  criterion 1. Known limit: criteria about tone or format (still well above the starting judge).
+
+**Final version: E5.** Criterion 1, three independent runs: 0.915 / 0.897 / 0.910 (mean 0.907); consistency 98.3%.
+Synthetic set 1: 0.931 (starting judge 0.810); synthetic set 2 (100 further cases): 0.908 (starting judge 0.781).
+Practice criteria A / B / C: 0.931 / 0.806 / 0.720 (starting judge 0.932 / 0.556 / 0.424).
 - **Tuning further on the remaining wrong originals:** the last ones (e.g. "we can often extend" vs. the policy's
   "some branches") are borderline even for a human reader. More prompt wording would only fit these few dev replies.
