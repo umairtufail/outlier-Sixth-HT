@@ -149,7 +149,7 @@ Other tools: `loo_eval.py` (edit types never shown), `stats.py` (cluster bootstr
 criteria), `synth/` (synthetic test set and the prompt that generated it).
 
 ## Demo
-`submission/slides.pdf` (max 5 slides). [TBD]
+Slides: [`submission/slides.pdf`](submission/slides.pdf) (5 slides): the problem and how our judge decides, the result on both criteria, where the gain comes from, tests on unseen cases, and how we got there.
 
 ## Next steps
 - **For SIXT:** run the judge on every chatbot reply before it is sent; show the agent the reason and the policy
