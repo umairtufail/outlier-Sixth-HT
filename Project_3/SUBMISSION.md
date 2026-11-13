@@ -44,6 +44,23 @@ rate limit.
 ## Results
 All numbers with the organisers' `score.py`; held out by source reply (examples never from the scored replies).
 
+**Step by step: what each change did** (criterion 1, all 226 cases, held out; each row adds one change to the row
+above; details and catch/keep per step in the appendix)
+
+| # | Change | Score | Effect |
+|---|---|---|---|
+| 0 | Starting judge (one call, plain prompt) | 0.697 | misses 93% of dropped conditions |
+| 1 | Step-by-step reasoning (quote rule, list claims, list differences) | 0.692 | catches far more, but fails too many good replies |
+| 2 | Benefit of the doubt for hedged wording | 0.752 | +0.06: fewer false alarms |
+| 3 | Two calls, fail only if both say FAIL | 0.779 | +0.03: borderline replies pass, clear violations still fail |
+| 4 | Three extra good replies as examples | 0.791 | +0.01 |
+| 5 | Self-checking number rule | 0.803 | +0.01: more wrong numbers caught |
+| 6 | Numbers never get the benefit of the doubt | 0.84 (3-run mean) | +0.04 |
+| 7 | **Only the criterion decides** (quote it or "not covered") | **0.891** (5-run mean; 0.85–0.92) | +0.05, and the fix that made the surprise criterion work |
+| – | Rejected, each measured then reverted: "who benefits" reasoning (3 attempts), number rule as a note only, tone-aware step 2 (2 attempts) | 0.78–0.86 | all lowered the score |
+
+Steps 1–5 were measured on Anthropic's API, steps 6–7 on the event endpoint; same model (`claude-haiku-4.5`).
+
 **Criterion 1 (does the reply over-promise?), dev set, 226 cases**
 
 | | combined | catch | keep |
