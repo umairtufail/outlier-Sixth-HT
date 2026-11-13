@@ -132,12 +132,21 @@ cases, with the proxy's response cache bypassed so every call reaches the model:
   de 0.78, en 0.82, es 0.74, fr 0.78, it 0.81.
 
 ## Surprise criterion
-*(To fill in after 14:30.)* Only `--criterion` and `--dev` change.
+"Does the reply state the policy correctly?" (numbers, conditions, scope, details; errors in both directions).
+**Nothing changed in the code:** only `--criterion surprise/CRITERION.md` and `--dev surprise/dev_pairs.jsonl`
+(73 labelled pairs). Held out by source reply (`cv_eval.py`), so the judge never sees examples from the scored
+replies.
 
 | | combined | catch | keep |
 |---|---|---|---|
-| Baseline | | | |
-| Ours, recipe unchanged | | | |
+| Baseline | 0.652 | 0.600 | 0.715 |
+| **Ours, recipe unchanged** | **0.863** | **0.833** | **0.895** |
+
+Per case 20 vs 5 (McNemar p = 0.004). Our practice criteria A ("facts correct") and B ("conditions kept") had
+rehearsed almost exactly this criterion. Diagnosis of the 10 remaining errors: 3 come from one source reply
+("we can often extend by phone" vs. the policy's "some branches"), 2 from our deliberate rule that a hedge
+("often") already conveys a general caveat ("depending on availability"), 1 from the model inventing a condition.
+We left the recipe unchanged: loosening the caveat rule would bring back false alarms on good replies.
 
 ## Where each part comes from (references)
 Each part of the recipe follows an established idea; we adapted it to this task and measured it here.

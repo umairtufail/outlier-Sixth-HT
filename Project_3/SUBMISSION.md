@@ -68,12 +68,23 @@ cases, giving the judge only 12–17 examples, run with unchanged code:
 | B: keeps the policy's conditions | 0.556 | **0.806** |
 | C: starts with the answer (no opening pleasantry) | 0.424 | **0.720** |
 
-**Criterion 2 (surprise criterion)**
+**Criterion 2 (surprise criterion: "does the reply state the policy correctly?"), 73 labelled examples**
+
+Our code was not changed: only `--criterion surprise/CRITERION.md` and `--dev surprise/dev_pairs.jsonl`. Our number
+is held out by source reply (the judge only sees examples from other source replies), not the flattering
+"score on the same examples" run.
 
 | | combined | catch | keep |
 |---|---|---|---|
-| Starting judge | [TBD] | [TBD] | [TBD] |
-| Ours, recipe unchanged | [TBD] | [TBD] | [TBD] |
+| Starting judge | 0.652 | 0.600 | 0.715 |
+| **Ours, recipe unchanged** | **0.863** | **0.833** | **0.895** |
+
+- Per case: ours right where the starting judge is wrong 20 times, the reverse 5 times (McNemar p = 0.004).
+- Dropped conditions caught 20% → 70%; translations kept 38% → 88%; wrong details 100%.
+- The 10 remaining errors sit in 3 of the 9 source replies and are mostly borderline: "we can often extend by
+  phone" vs. the policy's "some branches", and "often possible" without "depending on availability" (our rule that
+  a hedge already conveys a general caveat passes it; the labels fail it). We did not tune for these: the same rule
+  is what keeps good replies from being failed.
 
 **What did not work** (details in `RECIPE.md`): asking for "every difference, however small" (judge too strict);
 three attempts at explicit "who benefits" reasoning for numbers (each lowered criterion 1, e.g. 0.91 → 0.86);
